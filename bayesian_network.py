@@ -40,7 +40,28 @@ class Network:
             # pop everything off the observed stack while updating each node's value
             # and collecting the total probability of that sequence.
             # then insert the word that was observed and its probability into the radix tree
+        
+        elif char == '\b': #backspace
+            # pop and discard the value on the stack
+
+        else:
+            
 
     def suggest(self, num=1):
         # return the best 'num' word(s). default is 1
+
+        infinity = 20 ## XXX temporary, obviously
+
+        prefix = ""
+        for node in self.observations
+            prefix += node.letter
+
+        possibilities = self.seenWords.search_prefix(prefix, infinity)
+        orderedPos = sorted(possibilities, key=lambda item: item[1])
+
+        return orderedPos[:num]
+
+
+
+
 
