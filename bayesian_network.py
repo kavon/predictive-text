@@ -29,8 +29,10 @@ class Node:
 
 class Network:
     def __init__(self):
-        # make 26 nodes etc
-
+        self.root = []              # start empty, we can't account for every character
+                                    # initially, and even case matters!
+        self.seenWords = {}
+        
     def observe(letter):
         # recursive?
 
