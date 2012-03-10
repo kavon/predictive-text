@@ -59,6 +59,19 @@ class Network:
     def observe(self, char):
         assert len(char) == 1
 
+        """
+
+        should also note that the last node on the stack should have its
+        stopping observation counter incremented to note how many times a sequence ended
+        there (aka, that node now represents a word) and also have that node record the
+        "timestamp", aka the number of total word observations (the root node's observations)
+        to factor in how many words ago the word was last observed?
+        
+        Also, would a node's observations equal the sum of the observations of its children?
+
+        """
+
+
         # if you find this character in the string of all whitespace characters
         # so, when the char is a whitespace
         if string.find(string.whitespace, char) != -1:
@@ -76,7 +89,10 @@ class Network:
                 temp.observe()
 
             # let the root node know we observed a word, but don't pop it
-                self.observations[0].observe()
+            
+            ## XXX be careful of the cases where self.observations == 1 at the beginning of these conditions.
+            ##     we would just be observing the root node when nothing was typed. put a boolean somewhere for this?
+            self.observations[0].observe()
             
 
             # pop everything off the observed stack while updating each node's value
