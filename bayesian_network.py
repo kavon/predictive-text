@@ -31,6 +31,13 @@ class Node:
             if child.letter == description:
                 return child
         return None
+    
+    # return probability of itself in the sequence given the observations of its children?
+    def probability(self):
+
+    # update observation values
+    def observe(self, childWasObserved=True):
+        
 
 class Network:
 
@@ -55,10 +62,25 @@ class Network:
         # if you find this character in the string of all whitespace characters
         # so, when the char is a whitespace
         if string.find(string.whitespace, char) != -1:
+            # pop the last node, and tell it that none of its children were observed
+            # and collect its probability
 
+            if(self.observations > 1):
+                temp = self.observations.pop()
+                temp.observe(False)
+
+
+            # pop the other nodes, and by default they think one of their children was observed
+            while(self.observations > 1):
+                temp = self.observations.pop()
+                temp.observe()
+
+            # let the root node know we observed a word, but don't pop it
+                self.observations[0].observe()
             
 
             # pop everything off the observed stack while updating each node's value
+
             # and collecting the total probability of that sequence.
             # then insert the word that was observed and its probability into the radix tree
         
