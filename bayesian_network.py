@@ -2,6 +2,8 @@
 #   Using a Hidden Markov Model
 ###
 
+from radix_tree import RadixTree
+
 class Node:
 
     def __init__(self, key):
@@ -21,18 +23,24 @@ class Node:
         self.children.append(kid)
         self.children.sort()
 
-    # have node check itself out in the mirror
-    # kind of useless at the moment lol
-    def observe(self):
-        self.obs += 1
-
 
 class Network:
+
     def __init__(self):
         self.root = []              # start empty, we can't account for every character
                                     # initially, and even case matters!
-        self.seenWords = {}
         
-    def observe(letter):
-        # recursive?
+        self.observations = []      # stack of observed nodes to simulate recursion
+
+        self.seenWords = RadixTree()
+
+
+    def observe(self, char):
+        if char == ' ':
+            # pop everything off the observed stack while updating each node's value
+            # and collecting the total probability of that sequence.
+            # then insert the word that was observed and its probability into the radix tree
+
+    def suggest(self, num=1):
+        # return the best 'num' word(s). default is 1
 
