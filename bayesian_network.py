@@ -8,17 +8,19 @@ class Node:
 
     def __init__(self, key):
         self.letter = key           # letter this node represents
-        self.obs = 0                # observations of this node
+        self.passes = 0             # passing observations of this node
+        self.stops = 0              # observations of a word that stopped at this node
         self.children = []          # ordered list of children of this node
         self.childObs = 0           # total number of observations the children have had
+        self.stopstamp = 0          # "word" timestamp of the last time this node was a stop
 
-        #might remove this
+        # might remove this
         self.longestPath = None     # child leading to the longest observed string of nodes
 
     # Less than method used by list.sort() to keep nodes sorted.
     # Sorts by number of observations
     def __lt__(self, other):
-        return self.obs < other.obs
+        return (self.passes + self.stops) < (other.passes + other.stops)
 
     def addChild(self, kid):
         self.childObs += kid.obs
@@ -36,8 +38,21 @@ class Node:
     def probability(self):
 
     # update observation values
-    def observe(self, childWasObserved=True):
-        
+    def observe(self, stoppingObs = False, stoppingStamp = -1):
+        if stoppingObs:
+            self.stops += 1
+            assert stoppingStamp != -1   # if you choose to have True as an argument
+                                         # do not forget the stoppingStamp argument also!
+            self.stopstamp = stoppingStamp
+        else:
+            self.passes += 1
+            self.childObs += 1
+
+# returns coefficient to multiply something by to apply a decay of how long ago
+# the word was used.
+def decayValue(currentTimestamp, lastTimestamp):
+    assert currentTimestamp >= lastTimestamp
+    return 2 ** ( -(currentTimestamp - lastTimestamp) / 100 )
 
 class Network:
 
