@@ -35,7 +35,10 @@ class Node:
         return None
     
     # return probability of itself in the sequence given the observations of its children?
-    def probability(self):
+    def probability(self, currentStamp):
+        return (currentStamp - self.stopstamp) * decayValue(currentStamp, self.stopstamp)
+
+        
 
     # update observation values
     def observe(self, stoppingObs = False, stoppingStamp = -1):
