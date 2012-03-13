@@ -6,8 +6,8 @@ from radix_tree import RadixTree
 
 class Node:
 
-    def __init__(self, key):
-        self.letter = key           # letter this node represents
+    def __init__(self, letter):
+        self.key = letter           # letter this node represents
         self.passes = 0             # passing observations of this node
         self.stops = 0              # observations of a word that stopped at this node
         self.children = []          # ordered list of children of this node
@@ -20,7 +20,7 @@ class Node:
     # Less than method used by list.sort() to keep nodes sorted.
     # Sorts by number of observations
     def __lt__(self, other):
-        return (self.passes + self.stops) < (other.passes + other.stops)
+        return self.probability() < other.probability()
 
     def addChild(self, kid):
         self.childObs += kid.obs
@@ -36,7 +36,9 @@ class Node:
     
     # return probability of itself in the sequence given the observations of its children?
     def probability(self, currentStamp):
-        return (currentStamp - self.stopstamp) * decayValue(currentStamp, self.stopstamp)
+        stampDelta = currentStamp - self.stopstamp
+        totalObs = self.stops * 1.3 + self.passes
+        return (totalObs * decayValue(currentStamp - self.stopstamp)) / totalObs
 
         
 
@@ -51,11 +53,32 @@ class Node:
             self.passes += 1
             self.childObs += 1
 
+    def validSuffixes(self):
+        # base case, node has no children. so see if it was a stopping node
+        # by definition i believe it would _have_ to be a stopping node but
+        # lets check for shits and giggles.
+        if(len(self.children) == 0):
+            if(self.stops > 0):
+                return [ (self.key, self.probability()) ] 
+            return []
+
+        # inductive case
+        suffixes = []
+        for node in self.children:
+            suffixes.extend(validSuffixes(node))
+
+        for suffix in suffixes:
+            suffix = self.key + suffix
+
+        if(self.stops > 0):
+            suffixes.append( (self.key, self.probability()) )
+
+
 # returns coefficient to multiply something by to apply a decay of how long ago
 # the word was used.
 def decayValue(currentTimestamp, lastTimestamp):
     assert currentTimestamp >= lastTimestamp
-    return 2 ** ( -(currentTimestamp - lastTimestamp) / 100 )
+    return 2 ** ( -(delta) / 100 )
 
 class Network:
 
@@ -69,7 +92,7 @@ class Network:
         self.observations = []                  # stack of observed nodes to simulate recursion
         self.observations.append(Node(None))    # keep root node in stack always
         
-        self.currentPrefix = ''
+        self.currentPrefix = ""
         
         self.seenWords = RadixTree()
 
@@ -93,12 +116,12 @@ class Network:
         # if you find this character in the string of all whitespace characters
         # so, when the char is a whitespace
         if string.find(string.whitespace, char) != -1:
-            # pop the last node, and tell it that none of its children were observed
-            # and collect its probability
+
+            # pop the last node, and tell it that none of its children were observed because it's the stopping node
 
             if(self.observations > 1):
                 temp = self.observations.pop()
-                temp.observe(False)
+                temp.observe(True, self.observations[0].passes)
 
 
             # pop the other nodes, and by default they think one of their children was observed
@@ -157,14 +180,12 @@ class Network:
     def suggest(self, num=1):
         # return the best 'num' word(s). default is 1
 
-        infinity = 20 ## XXX temporary, obviously
+        
 
-        prefix = ""
-        for node in self.observations
-            prefix += node.letter
+        #infinity = 200 # XXX temporary
 
-        possibilities = self.seenWords.search_prefix(prefix, infinity)
-        orderedPos = sorted(possibilities, key=lambda item: item[1])
+        #possibilities = self.seenWords.search_prefix(self.currentPrefix, infinity)
+        #orderedPos = sorted(possibilities, key=lambda item: item[1])
 
         return orderedPos[:num]
 
