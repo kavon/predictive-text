@@ -41,7 +41,7 @@ class Node:
     def probability(self, currentStamp):
         stampDelta = currentStamp - self.stopstamp
         totalObs = self.stops + self.passes
-        return (totalObs * decayValue(currentStamp - self.stopstamp)) / totalObs
+        return (totalObs * decayValue(currentStamp - self.stopstamp)) / totalObs + self.childPasses
 
     # update observation values
     def observe(self, stoppingObs = False, stoppingStamp = -1):
@@ -116,7 +116,7 @@ class Suffix:
 # returns coefficient to multiply something by to apply a decay of how long ago
 # the word was used.
 def decayValue(delta):
-    return 2 ** ( -(delta) / 5 )
+    return 2 ** ( -(delta) / 100 )
 
 class Network:
 
