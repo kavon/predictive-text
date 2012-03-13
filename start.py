@@ -35,31 +35,41 @@ print "have you seen 'ducks'?", rt.contains("ducks")
 from bayesian_network import Network
 
 n = Network()
-n.observe("r")
-n.observe("a")
-n.observe("c")
-n.observe("k")
-n.observe(" ")
 
-n.observe("r")
-n.observe("a")
-n.observe("c")
-n.observe("k")
-n.observe(" ")
+for i in range(0, 10):
+    n.observe("r")
+    n.observe("a")
+    n.observe("c")
+    n.observe("k")
+    n.observe(" ")
 
-n.observe("c")
-n.observe("i")
-n.observe("t")
-n.observe("y")
-n.observe(" ")
+for i in range(0, 15):
+    n.observe("r")
+    n.observe("a")
+    n.observe("c")
+    n.observe("q")
+    n.observe("u")
+    n.observe("e")
+    n.observe("t")
+    n.observe(" ")
 
-n.observe("b")
-n.observe("i")
-n.observe("t")
-n.observe("c")
-n.observe("h")
-n.observe(" ")
+for i in range(0, 1):
+    n.observe("c")
+    n.observe("i")
+    n.observe("t")
+    n.observe("y")
+    n.observe(" ")
 
-n.observe("r")
-n.observe("a")
-print n.suggest()
+for i in range(0, 1):
+    n.observe("p")
+    n.observe("h")
+    n.observe("o")
+    n.observe("n")
+    n.observe("e")
+    n.observe(" ")
+
+#n.observe("r")
+#n.observe("a")
+
+for word in n.suggest(10):
+    print word

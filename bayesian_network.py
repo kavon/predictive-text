@@ -29,7 +29,6 @@ class Node:
         self.childPasses += kid.passes
         self.childStops += kid.stops
         self.children.append(kid)
-        #self.children.sort()
 
     # returns reference to child matching description, None otherwise
     def findChild(self, description):
@@ -41,7 +40,7 @@ class Node:
     # return probability of itself in the sequence given the observations of its children?
     def probability(self, currentStamp):
         stampDelta = currentStamp - self.stopstamp
-        totalObs = self.stops * 1.3 + self.passes
+        totalObs = self.stops + self.passes
         return (totalObs * decayValue(currentStamp - self.stopstamp)) / totalObs
 
     # update observation values
@@ -55,40 +54,32 @@ class Node:
             self.passes += 1
             self.childPasses += 1 # XXX wrong, should handle child stop?
 
-    def validSuffixes(self):
+    def validSuffixes(self, stamp):
         # base case, node has no children. so see if it was a stopping node
         # by definition i believe it would _have_ to be a stopping node but
         # lets check for shits and giggles.
-        
-        """
         if(len(self.children) == 0):
             if(self.stops > 0):
-                return [ (self.key, self.probability(20)) ] 
+                return [ Suffix(self.key, self.probability(stamp)) ] 
             return []
-        """
-
-        if self.stops > 0:
-            return self.key
-        
-        
-        return self.key + self.children[0].validSuffixes()
 
         # inductive case
+
+        # get all the suffixes of this node's child
         suffixes = []
         for node in self.children:
-            prevSux = node.validSuffixes()
-            if prevSux != None:
-                suffixes.extend(prevSux)
-            else:
-                print "\nculprit!!:"
-                node.printStats()
-                print "previous was null!"
+            suffixes.extend(node.validSuffixes(stamp)) 
 
+        # prepend the key of this node to all of them
         for suffix in suffixes:
-            suffix = (self.key + suffix[0], suffix[1])
+            suffix.prepend(self.key)
 
+        # if this node itself is a stopping node, add it
+        # to the list of possible suffixes
         if(self.stops > 0):
-            suffixes.append( (self.key, self.probability(20)) )
+            suffixes.append( Suffix(self.key, self.probability(stamp)) )
+
+        return suffixes
 
     def printStats(self):
         print "\nkey=", self.key
@@ -100,11 +91,32 @@ class Node:
         print "stopstamp=", self.stopstamp
         
 
+class Suffix:
+    def __init__(self, chars, val):
+        self.key = chars
+        self.value = val
+    
+    def prepend(self, chars):
+
+        # probably trying to prepend the root node, ignore it
+        if(chars == None):
+            return
+
+        self.key = chars + self.key
+
+    # allows for a list of Suffixes to have sort() called
+    # defines the ordering
+    def __lt__(self, other):
+        return other.value < self.value
+
+    # how to "convert" this object into a string for printing purposes
+    def __str__(self):
+        return "(" + self.key + ", " + `self.value` + ")"
 
 # returns coefficient to multiply something by to apply a decay of how long ago
 # the word was used.
 def decayValue(delta):
-    return 2 ** ( -(delta) / 100 )
+    return 2 ** ( -(delta) / 5 )
 
 class Network:
 
@@ -211,10 +223,10 @@ class Network:
         # return the best 'num' word(s). default is 1
          #self.seenWords.search_prefix(self.currentPrefix, infinity)
 
-        possibilities = self.observations[1].validSuffixes()
-        #orderedPos = sorted(possibilities, key=lambda item: item[1])
+        possibilities = self.observations[len(self.observations) - 1].validSuffixes(self.observations[0].passes)
+        possibilities.sort()
 
-        return possibilities #orderedPos[:num]
+        return possibilities[:num]
 
 
 
