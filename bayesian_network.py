@@ -2,7 +2,9 @@
 #   Using a Hidden Markov Model
 ###
 
-from radix_tree import RadixTree
+#from radix_tree import RadixTree
+
+import string
 
 class Node:
 
@@ -11,7 +13,8 @@ class Node:
         self.passes = 0             # passing observations of this node
         self.stops = 0              # observations of a word that stopped at this node
         self.children = []          # ordered list of children of this node
-        self.childObs = 0           # total number of observations the children have had
+        self.childPasses = 0        # total number of observations the children have had
+        self.childStops = 0         # total number of words below this node
         self.stopstamp = 0          # "word" timestamp of the last time this node was a stop
 
         # might remove this
@@ -19,18 +22,19 @@ class Node:
 
     # Less than method used by list.sort() to keep nodes sorted.
     # Sorts by number of observations
-    def __lt__(self, other):
-        return self.probability() < other.probability()
+    #def __lt__(self, other):
+    #    return self.probability(20) < other.probability(20) # XXX temporary
 
     def addChild(self, kid):
-        self.childObs += kid.obs
+        self.childPasses += kid.passes
+        self.childStops += kid.stops
         self.children.append(kid)
-        self.children.sort()
+        #self.children.sort()
 
     # returns reference to child matching description, None otherwise
     def findChild(self, description):
         for child in self.children:
-            if child.letter == description:
+            if child.key == description:
                 return child
         return None
     
@@ -39,8 +43,6 @@ class Node:
         stampDelta = currentStamp - self.stopstamp
         totalObs = self.stops * 1.3 + self.passes
         return (totalObs * decayValue(currentStamp - self.stopstamp)) / totalObs
-
-        
 
     # update observation values
     def observe(self, stoppingObs = False, stoppingStamp = -1):
@@ -51,33 +53,57 @@ class Node:
             self.stopstamp = stoppingStamp
         else:
             self.passes += 1
-            self.childObs += 1
+            self.childPasses += 1 # XXX wrong, should handle child stop?
 
     def validSuffixes(self):
         # base case, node has no children. so see if it was a stopping node
         # by definition i believe it would _have_ to be a stopping node but
         # lets check for shits and giggles.
+        
+        """
         if(len(self.children) == 0):
             if(self.stops > 0):
-                return [ (self.key, self.probability()) ] 
+                return [ (self.key, self.probability(20)) ] 
             return []
+        """
+
+        if self.stops > 0:
+            return self.key
+        
+        
+        return self.key + self.children[0].validSuffixes()
 
         # inductive case
         suffixes = []
         for node in self.children:
-            suffixes.extend(validSuffixes(node))
+            prevSux = node.validSuffixes()
+            if prevSux != None:
+                suffixes.extend(prevSux)
+            else:
+                print "\nculprit!!:"
+                node.printStats()
+                print "previous was null!"
 
         for suffix in suffixes:
-            suffix = self.key + suffix
+            suffix = (self.key + suffix[0], suffix[1])
 
         if(self.stops > 0):
-            suffixes.append( (self.key, self.probability()) )
+            suffixes.append( (self.key, self.probability(20)) )
+
+    def printStats(self):
+        print "\nkey=", self.key
+        print "passes=", self.passes
+        print "stops=", self.stops
+        print "# children=", len(self.children)
+        print "childPasses=", self.childPasses
+        print "childStops=", self.childStops
+        print "stopstamp=", self.stopstamp
+        
 
 
 # returns coefficient to multiply something by to apply a decay of how long ago
 # the word was used.
-def decayValue(currentTimestamp, lastTimestamp):
-    assert currentTimestamp >= lastTimestamp
+def decayValue(delta):
     return 2 ** ( -(delta) / 100 )
 
 class Network:
@@ -94,7 +120,7 @@ class Network:
         
         self.currentPrefix = ""
         
-        self.seenWords = RadixTree()
+        #self.seenWords = RadixTree()
 
 
     def observe(self, char):
@@ -111,21 +137,25 @@ class Network:
         Also, would a node's observations equal the sum of the observations of its children?
 
         """
-
+      
+        """
+        print "****** OBSERVED ", char, "*********"
+        for node in self.observations:
+            node.printStats()
+        """
 
         # if you find this character in the string of all whitespace characters
         # so, when the char is a whitespace
         if string.find(string.whitespace, char) != -1:
-
             # pop the last node, and tell it that none of its children were observed because it's the stopping node
 
-            if(self.observations > 1):
+            if(len(self.observations) > 1):
                 temp = self.observations.pop()
                 temp.observe(True, self.observations[0].passes)
 
 
             # pop the other nodes, and by default they think one of their children was observed
-            while(self.observations > 1):
+            while(len(self.observations) > 1):
                 temp = self.observations.pop()
                 temp.observe()
 
@@ -179,15 +209,12 @@ class Network:
 
     def suggest(self, num=1):
         # return the best 'num' word(s). default is 1
+         #self.seenWords.search_prefix(self.currentPrefix, infinity)
 
-        
-
-        #infinity = 200 # XXX temporary
-
-        #possibilities = self.seenWords.search_prefix(self.currentPrefix, infinity)
+        possibilities = self.observations[1].validSuffixes()
         #orderedPos = sorted(possibilities, key=lambda item: item[1])
 
-        return orderedPos[:num]
+        return possibilities #orderedPos[:num]
 
 
 
