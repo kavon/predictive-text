@@ -1,8 +1,6 @@
 ###
-#   Using a Hidden Markov Model
+#   Using a Markov Model
 ###
-
-#from radix_tree import RadixTree
 
 import string
 
@@ -14,11 +12,8 @@ class Node:
         self.stops = 0              # observations of a word that stopped at this node
         self.children = []          # ordered list of children of this node
         self.childPasses = 0        # total number of observations the children have had
-        self.childStops = 0         # total number of words below this node
+        self.childStops = 0        # total number of observations the children have had
         self.stopstamp = 0          # "word" timestamp of the last time this node was a stop
-
-        # might remove this
-        self.longestPath = None     # child leading to the longest observed string of nodes
 
     # Less than method used by list.sort() to keep nodes sorted.
     # Sorts by number of observations
@@ -41,7 +36,8 @@ class Node:
     def probability(self, currentStamp):
         stampDelta = currentStamp - self.stopstamp
         totalObs = self.stops + self.passes
-        return (totalObs * decayValue(currentStamp - self.stopstamp)) / totalObs + self.childPasses
+        childObs = self.childStops + self.childPasses
+        return childObs + totalObs * decayValue(stampDelta)
 
     # update observation values
     def observe(self, stoppingObs = False, stoppingStamp = -1):
@@ -116,7 +112,7 @@ class Suffix:
 # returns coefficient to multiply something by to apply a decay of how long ago
 # the word was used.
 def decayValue(delta):
-    return 2 ** ( -(delta) / 100 )
+    return 2.0 ** ( -(delta) / 300.0 )
 
 class Network:
 
@@ -177,6 +173,8 @@ class Network:
             ##     we would just be observing the root node when nothing was typed. put a boolean somewhere for this?
             self.observations[0].observe()
             
+            
+            self.currentPrefix = ""
 
             # pop everything off the observed stack while updating each node's value
 
@@ -225,6 +223,10 @@ class Network:
 
         possibilities = self.observations[len(self.observations) - 1].validSuffixes(self.observations[0].passes)
         possibilities.sort()
+
+        for suffix in possibilities:
+            suffix.prepend(self.currentPrefix[:len(self.currentPrefix)-1])
+
 
         return possibilities[:num]
 

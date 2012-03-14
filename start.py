@@ -13,7 +13,10 @@ for line in fileinput.input():
     for char in line:
         n.observe(char)
 
-n.observe("y")
+n.observe("a")
+#n.observe("o")
+#n.observe("b")
+#n.observe("b")
 
 for word in n.suggest(20):
     print word
