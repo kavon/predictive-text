@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-
-
-
 from bayesian_network import Network
 
 n = Network()
@@ -13,50 +10,38 @@ for line in fileinput.input():
     for char in line:
         n.observe(char)
 
-#n.observe("w")
-#n.observe("a")
-#n.observe("p")
-#n.observe("t")
+n.observe("c")
+n.observe("o")
+n.observe("r")
+n.observe("r")
+n.observe("e")
+n.observe("c")
+n.observe("t")
+n.observe("n")
+n.observe("e")
+n.observe("s")
+n.observe("s")
+n.observe(" ")
+
+n.observe("c")
+n.observe("o")
+n.observe("r")
+n.observe("r")
+n.observe("e")
+n.observe("c")
+n.observe("t")
+n.observe("n")
+n.observe("e")
+n.observe("s")
+n.observe("s")
+n.observe(" ")
+
+n.observe("c")
+n.observe("o")
+n.observe("r")
+n.observe("r")
 
 for word in n.suggest(20):
     print word
 
-
-
-"""
-for i in range(0, 10):
-    n.observe("r")
-    n.observe("a")
-    n.observe("c")
-    n.observe("k")
-    n.observe(" ")
-
-for i in range(0, 15):
-    n.observe("r")
-    n.observe("a")
-    n.observe("c")
-    n.observe("q")
-    n.observe("u")
-    n.observe("e")
-    n.observe("t")
-    n.observe(" ")
-
-for i in range(0, 1):
-    n.observe("c")
-    n.observe("i")
-    n.observe("t")
-    n.observe("y")
-    n.observe(" ")
-
-for i in range(0, 1):
-    n.observe("p")
-    n.observe("h")
-    n.observe("o")
-    n.observe("n")
-    n.observe("e")
-    n.observe(" ")
-
-#n.observe("r")
-#n.observe("a")
-"""
 
