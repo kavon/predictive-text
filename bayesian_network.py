@@ -12,14 +12,10 @@ class Node:
         self.stops = 0              # observations of a word that stopped at this node
         self.children = []          # ordered list of children of this node
         self.childPasses = 0        # total number of observations the children have had
-        self.childStops = 0        # total number of observations the children have had
+        self.childStops = 0         # total number of observations the children have had
         self.stopstamp = 0          # "word" timestamp of the last time this node was a stop
 
-    # Less than method used by list.sort() to keep nodes sorted.
-    # Sorts by number of observations
-    #def __lt__(self, other):
-    #    return self.probability(20) < other.probability(20) # XXX temporary
-
+    # adds an existing child to this node
     def addChild(self, kid):
         self.childPasses += kid.passes
         self.childStops += kid.stops
@@ -48,10 +44,10 @@ class Node:
             self.stopstamp = stoppingStamp
         else:
             self.passes += 1
-            self.childPasses += 1 # XXX wrong, should handle child stop?
+            self.childPasses += 1 # XXX should handle child stop?
 
     def validSuffixes(self, stamp):
-        # base case, node has no children. so see if it was a stopping node
+        # base case, node has no children. so see if it was a stopping node.
         # by definition i believe it would _have_ to be a stopping node but
         # lets check for shits and giggles.
         if(len(self.children) == 0):
@@ -77,6 +73,7 @@ class Node:
 
         return suffixes
 
+    # debugging method
     def printStats(self):
         print "\nkey=", self.key
         print "passes=", self.passes
@@ -87,13 +84,13 @@ class Node:
         print "stopstamp=", self.stopstamp
         
 
+# suffix value bundle
 class Suffix:
     def __init__(self, chars, val):
         self.key = chars
         self.value = val
     
     def prepend(self, chars):
-
         # probably trying to prepend the root node, ignore it
         if(chars == None):
             return
@@ -117,40 +114,14 @@ def decayValue(delta):
 class Network:
 
     def __init__(self):
-        
-        """ I don't think we need a root node variable """
-
-        #self.rootNode = Node(None)              # start empty, we can't account for every character
-                                                 # initially, and even case matters!
-        
         self.observations = []                  # stack of observed nodes to simulate recursion
         self.observations.append(Node(None))    # keep root node in stack always
         
         self.currentPrefix = ""
-        
-        #self.seenWords = RadixTree()
-
 
     def observe(self, char):
         assert len(char) == 1
 
-        """
-
-        should also note that the last node on the stack should have its
-        stopping observation counter incremented to note how many times a sequence ended
-        there (aka, that node now represents a word) and also have that node record the
-        "timestamp", aka the number of total word observations (the root node's observations)
-        to factor in how many words ago the word was last observed?
-        
-        Also, would a node's observations equal the sum of the observations of its children?
-
-        """
-      
-        """
-        print "****** OBSERVED ", char, "*********"
-        for node in self.observations:
-            node.printStats()
-        """
 
         # if you find this character in the string of all whitespace characters
         # so, when the char is a whitespace
@@ -167,19 +138,17 @@ class Network:
                 temp = self.observations.pop()
                 temp.observe()
 
-            # let the root node know we observed a word, but don't pop it
             
             ## XXX be careful of the cases where self.observations == 1 at the beginning of these conditions.
             ##     we would just be observing the root node when nothing was typed. put a boolean somewhere for this?
+
+            # let the root node know we observed a word, but don't pop it
             self.observations[0].observe()
             
-            
+            #reset prefix 
             self.currentPrefix = ""
 
             # pop everything off the observed stack while updating each node's value
-
-            # and collecting the total probability of that sequence.
-            # then insert the word that was observed and its probability into the radix tree
         
         elif char == '\b': #backspace
             # there is no need to decrement observations of the popped child
@@ -191,10 +160,13 @@ class Network:
             
             self.observations.pop()
 
-            """ done """
             # pop and discard the value on the stack
 
         else:
+
+            # find the child of the topmost node on the stack which has a letter value corresponding to
+            # the observed letter. if it is found then push that on the stack, otherwise create a new one
+            # and then push it on the stack
 
             # update current observed prefix for a word
             self.currentPrefix += char
@@ -212,14 +184,9 @@ class Network:
             self.observations.append(result)
                             
 
-            """ looks done to me """
-            # find the child of the topmost node on the stack which has a letter value corresponding to
-            # the observed letter. if it is found then push that on the stack, otherwise create a new one
-            # and then push it on the stack
 
     def suggest(self, num=1):
         # return the best 'num' word(s). default is 1
-         #self.seenWords.search_prefix(self.currentPrefix, infinity)
 
         possibilities = self.observations[len(self.observations) - 1].validSuffixes(self.observations[0].passes)
         possibilities.sort()
