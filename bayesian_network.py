@@ -119,6 +119,13 @@ class Network:
         
         self.currentPrefix = ""
 
+    #reset what's currently being observed
+    def clear(self):
+        self.currentPrefix = ""
+        numToPop = len(self.observations) - 1 # don't pop root node!
+        for i in xrange(0, numToPop):
+            self.observations.pop()
+
     def observe(self, char):
         assert len(char) == 1
 
