@@ -6,7 +6,7 @@ import cPickle as pickle    # use cPickle instead of pickle but load it under sa
 from bayesian_network import Network
 
 # find out how many suggestions the user wants, otherwise default to 10
-if len(sys.argv) == 2 and sys.argv[1].isdigit():
+if len(sys.argv) >= 2 and sys.argv[1].isdigit():
     numSuggestions = int(sys.argv[1])
 else:
     numSuggestions = 10
@@ -31,6 +31,7 @@ except:
 # train from stdin
 sys.stdout.write('Processing new data... ')
 sys.stdout.flush()
+
 for line in fileinput.input():
     for char in line:
         n.observe(char)
@@ -47,8 +48,12 @@ sys.stdin = open('/dev/tty')
 
 while True:
     
-    prefix = raw_input('-> ')
-    
+    try:    
+        prefix = raw_input('-> ')
+    except:
+        print
+        break
+
     if prefix == '\s' or prefix == '\se':
         sys.stdout.write('Saving learned data... ')
         sys.stdout.flush()
