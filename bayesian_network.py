@@ -4,9 +4,19 @@
 
 import string
 
-STOP_IMPORTANCE = 5
-SENIOR_STATUS = 100
-COMBO_LIMIT = SENIOR_STATUS / 5
+# fine tuning variables
+STOP_IMPORTANCE = 5                 # 
+SENIOR_STATUS = 100                 #  
+
+COMBO_LIMIT = SENIOR_STATUS / 5     # words which appear more than once within this number of words
+                                    # are exponentially boosted
+
+COMBO_BOOST = 1.5                   # this ^ (combo streak) is the rate in which to boost a word
+
+LENGTH_PENALTY = 4                  # words of length <= this value are penalized
+LENGTH_BOOST = 0.4                  # steepness of boost curve. 0 < boost < 1
+
+
 
 class Node:
 
@@ -44,7 +54,7 @@ class Node:
             self.stops += self.combo
             self.combo = 0
 
-        hotness = 2 ** self.combo
+        hotness = COMBO_BOOST ** self.combo
         ageFactor = decayValue(observationDelta)
         
         return ageFactor * self.lengthBonus * ((hotness * STOP_IMPORTANCE * self.stops) + (self.passes / currentStamp)) 
@@ -138,12 +148,13 @@ def decayValue(delta):
     return 2.0 ** ( -(delta) / float(SENIOR_STATUS) )
 
 # returns a multiplier bonus/penalty for word length.
-# numChars <= 1, returns 0
-# numchars > 1, returns x where x >= 1 
-def lengthBonus(numChars):
-    if numChars < 1:
-        return 0.0
-    return (numChars - 1) ** 0.25
+def lengthBonus(x):
+    if x >= 1 and x <= (LENGTH_PENALTY + 1):
+        return ((x - 1) ** 2.0) / (LENGTH_PENALTY ** 2.0)
+    elif x > (LENGTH_PENALTY + 1):
+        return (x - LENGTH_PENALTY) ** LENGTH_BOOST
+    
+    return 0.0
 
 class Network:
 
