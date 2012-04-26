@@ -162,6 +162,10 @@ class Network:
         self.observations = []                  # stack of observed nodes to simulate recursion
         self.observations.append(Node(None))    # keep root node in stack always
         
+        self.badSuggestions = set(['an', 'and', 'are', 'as', 'be', 'but', 'by', 'for', 'he', 'her', 'his', 'if', \
+            'in', 'is', 'it', 'me', 'my', 'no', 'of', 'on', 'or', 'she', 'so', 'the', 'to', \
+            'was', 'we', 'yes', 'you'])
+
         self.currentPrefix = ""
 
     #reset what's currently being observed
@@ -212,6 +216,8 @@ class Network:
             # observation nodes to slim down on memory use if we're using a lot
             
             self.observations.pop()
+            
+            # XXX take last char off the current prefix
 
             # pop and discard the value on the stack
 
@@ -242,17 +248,18 @@ class Network:
         # return the best 'num' word(s). default is 1
 
         possibilities = self.observations[len(self.observations) - 1].validSuffixes(self.observations[0].passes)
-        possibilities.sort()
-
-        #cut out extra nodes
-        possibilities = possibilities[:num]
 
         #add prefix to suffixes
         for suffix in possibilities:
             suffix.prepend(self.currentPrefix[:len(self.currentPrefix)-1])
 
-        #filter out the current prefix as a suggestion
-        possibilities = [x for x in possibilities if x.key != self.currentPrefix]
+        #filter out the current prefix and bad suggestions
+        possibilities = [x for x in possibilities if x.key != self.currentPrefix and x.key not in self.badSuggestions]
+
+        possibilities.sort()
+
+        #cut out extra nodes
+        possibilities = possibilities[:num]
 
         return possibilities
 
