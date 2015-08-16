@@ -1,5 +1,21 @@
 #!/usr/bin/env python
 
+# Copyright (C) 2015  Kavon Farvardin (http://kavon.farvard.in)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
 import sys                  # allows for processing command line arguments
 import fileinput            # allows for processing stdin
 import cPickle as pickle    # use cPickle instead of pickle but load it under same name, it's hella fast
@@ -13,7 +29,7 @@ else:
 
 # load previous knowlege
 try:
-    trainingData = open('knowlege.dat', 'rb')
+    trainingData = open('knowledge.dat', 'rb')
 
     sys.stdout.write('Loading learned data... ')
     sys.stdout.flush()
@@ -25,7 +41,7 @@ try:
 except:
     print "No existing training data found. Making new file."
     # file probably didn't exist or some other error, just start fresh.
-    trainingData = open('knowlege.dat', 'wb')
+    trainingData = open('knowledge.dat', 'wb')
     n = Network()
 
 # train from stdin
@@ -58,7 +74,7 @@ while True:
         sys.stdout.write('Saving learned data... ')
         sys.stdout.flush()
         
-        pickle.dump(n, open('knowlege.dat', 'wb'))
+        pickle.dump(n, open('knowledge.dat', 'wb'))
 
         sys.stdout.write('done\n')
         sys.stdout.flush()
