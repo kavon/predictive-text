@@ -1,6 +1,6 @@
 # predictive text #
 
-This proof-of-concept program suggests words as the user is typing based upon what it has learned about what the user has typed recently. It was originally created as a class project.
+This proof-of-concept program suggests words as the user is typing based upon what it has learned about what the user has typed recently. It was originally created for a class project.
 
 
 ## usage ##
